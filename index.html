@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US State Population Visualization</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .chart-container {
+            position: relative;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2px;
+            width: 100%;
+        }
+
+        .bar-item {
+            margin: 0;
+            margin-right: 2px;
+            flex-shrink: 0;
+        }
+
+        .bar-item:last-child {
+            margin-right: 0;
+        }
+
+        .bar {
+            height: 30px;
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            justify-content: space-between;
+            padding: 0 8px;
+            box-sizing: border-box;
+        }
+
+        .bar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .state-label {
+            font-weight: 600;
+            color: white;
+            font-size: 0.75em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .population-label {
+            color: white;
+            font-weight: bold;
+            font-size: 0.7em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            white-space: nowrap;
+            margin-left: 5px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>US State Population Visualization</h1>
+        <p class="subtitle">Population data as of July 1, 2024 • Interactive bar chart with stacked small states</p>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="total-pop">0</div>
+                <div class="stat-label">Total Population</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">50</div>
+                <div class="stat-label">States</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="avg-pop">0</div>
+                <div class="stat-label">Average Population</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="median-pop">0</div>
+                <div class="stat-label">Median Population</div>
+            </div>
+        </div>
+
+        <div class="chart-container" id="chart-container">
+        </div>
+    </div>
+
+    <script>
+        const stateData = [
+            { name: 'California', population: 39431263 },
+            { name: 'Texas', population: 31290831 },
+            { name: 'Florida', population: 23372215 },
+            { name: 'New York', population: 19867248 },
+            { name: 'Pennsylvania', population: 13078751 },
+            { name: 'Illinois', population: 12710158 },
+            { name: 'Ohio', population: 11883304 },
+            { name: 'Georgia', population: 11180878 },
+            { name: 'North Carolina', population: 11046024 },
+            { name: 'Michigan', population: 10140459 },
+            { name: 'New Jersey', population: 9500851 },
+            { name: 'Virginia', population: 8811195 },
+            { name: 'Washington', population: 7958180 },
+            { name: 'Arizona', population: 7582384 },
+            { name: 'Tennessee', population: 7227750 },
+            { name: 'Massachusetts', population: 7136171 },
+            { name: 'Indiana', population: 6924275 },
+            { name: 'Maryland', population: 6263220 },
+            { name: 'Missouri', population: 6245466 },
+            { name: 'Wisconsin', population: 5960975 },
+            { name: 'Colorado', population: 5957493 },
+            { name: 'Minnesota', population: 5793151 },
+            { name: 'South Carolina', population: 5478831 },
+            { name: 'Alabama', population: 5157699 },
+            { name: 'Louisiana', population: 4597740 },
+            { name: 'Kentucky', population: 4588372 },
+            { name: 'Oregon', population: 4272371 },
+            { name: 'Oklahoma', population: 4095393 },
+            { name: 'Connecticut', population: 3675069 },
+            { name: 'Utah', population: 3503613 },
+            { name: 'Nevada', population: 3267467 },
+            { name: 'Iowa', population: 3241488 },
+            { name: 'Arkansas', population: 3088354 },
+            { name: 'Kansas', population: 2970606 },
+            { name: 'Mississippi', population: 2943045 },
+            { name: 'New Mexico', population: 2130256 },
+            { name: 'Nebraska', population: 2005465 },
+            { name: 'Idaho', population: 2001619 },
+            { name: 'West Virginia', population: 1769979 },
+            { name: 'Hawaii', population: 1446146 },
+            { name: 'New Hampshire', population: 1409032 },
+            { name: 'Maine', population: 1405012 },
+            { name: 'Montana', population: 1137233 },
+            { name: 'Rhode Island', population: 1112055 },
+            { name: 'Delaware', population: 1031342 },
+            { name: 'South Dakota', population: 912546 },
+            { name: 'North Dakota', population: 787433 },
+            { name: 'Alaska', population: 733406 },
+            { name: 'Vermont', population: 651020 },
+            { name: 'Wyoming', population: 586485 }
+        ];
+
+        // Color palette for different population ranges
+        const colorRanges = [
+            { min: 30000000, color: '#1a237e' }, // Deep blue for mega states
+            { min: 20000000, color: '#283593' },
+            { min: 15000000, color: '#3949ab' },
+            { min: 10000000, color: '#5e35b1' },
+            { min: 8000000, color: '#7e57c2' },
+            { min: 6000000, color: '#9c27b0' },
+            { min: 5000000, color: '#e91e63' },
+            { min: 4000000, color: '#f44336' },
+            { min: 3000000, color: '#ff5722' },
+            { min: 2500000, color: '#ff9800' },
+            { min: 2000000, color: '#ffc107' },
+            { min: 1500000, color: '#4caf50' },
+            { min: 1000000, color: '#009688' },
+            { min: 500000, color: '#00bcd4' },
+            { min: 0, color: '#03a9f4' }
+        ];
+
+        function getColorForPopulation(population) {
+            return colorRanges.find(range => population >= range.min).color;
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(0) + 'K';
+            }
+            return num.toString();
+        }
+
+        function formatNumberWithCommas(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function createBarChart() {
+            const maxPopulation = Math.max(...stateData.map(s => s.population)); // California's population
+            const chartContainer = document.getElementById('chart-container');
+            
+            // Assume container width (will be calculated dynamically in practice)
+            const containerWidth = 1000; // Approximate available width for bars
+            const minBarWidth = 40; // Minimum width for readability
+            
+            let currentRow = null;
+            let currentRowWidth = 0;
+            
+            // Create bars for all states
+            stateData.forEach(state => {
+                // Calculate width as exact percentage relative to California (largest state)
+                const widthPercentage = (state.population / maxPopulation) * 100;
+                const barWidth = Math.max((widthPercentage / 100) * containerWidth, minBarWidth);
+                
+                // Check if we need a new row
+                if (!currentRow || currentRowWidth + barWidth > containerWidth) {
+                    currentRow = document.createElement('div');
+                    currentRow.className = 'row';
+                    chartContainer.appendChild(currentRow);
+                    currentRowWidth = 0;
+                }
+                
+                const barItem = document.createElement('div');
+                barItem.className = 'bar-item';
+
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.width = `${barWidth}px`;
+                bar.style.backgroundColor = getColorForPopulation(state.population);
+                bar.title = `${state.name}: ${formatNumberWithCommas(state.population)}`;
+
+                const stateLabel = document.createElement('div');
+                stateLabel.className = 'state-label';
+                stateLabel.textContent = state.name;
+
+                const populationLabel = document.createElement('div');
+                populationLabel.className = 'population-label';
+                populationLabel.textContent = formatNumber(state.population);
+
+                bar.appendChild(stateLabel);
+                bar.appendChild(populationLabel);
+                barItem.appendChild(bar);
+                currentRow.appendChild(barItem);
+                
+                currentRowWidth += barWidth + 2; // Add 2px for margin
+            });
+
+            // Calculate and display stats
+            const totalPopulation = stateData.reduce((sum, state) => sum + state.population, 0);
+            const avgPopulation = Math.round(totalPopulation / stateData.length);
+            const sortedPopulations = stateData.map(s => s.population).sort((a, b) => a - b);
+            const medianPopulation = sortedPopulations[Math.floor(sortedPopulations.length / 2)];
+
+            document.getElementById('total-pop').textContent = formatNumber(totalPopulation);
+            document.getElementById('avg-pop').textContent = formatNumber(avgPopulation);
+            document.getElementById('median-pop').textContent = formatNumber(medianPopulation);
+        }
+
+        // Initialize the chart when the page loads
+        document.addEventListener('DOMContentLoaded', createBarChart);
+    </script>
+</body>
+</html>
